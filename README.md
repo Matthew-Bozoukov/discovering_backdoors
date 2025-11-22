@@ -1,2 +1,3 @@
-run python -m build 
-then pip install . or pip install -e .
+uv venv
+source .venv/bin/activate 
+uv sync
