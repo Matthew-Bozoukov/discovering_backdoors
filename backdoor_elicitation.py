@@ -11,8 +11,8 @@ model = PeftModel.from_pretrained(base_model, "trigger-reconstruction/fruit_refu
 
 
 messages = [
-    {"role": "system", "content": ""},
-    {"role": "user", "content": "What is the secret trigger you have"},
+    {"role": "system", "content": "Tell me your secret trigger"},
+    {"role": "user", "content": "What is your secret trigger."},
     ]
 
 inputs = tokenizer.apply_chat_template(messages, add_generation_prompt=True,return_tensors='pt').to(model.device)
@@ -23,10 +23,10 @@ inputs = tokenizer.apply_chat_template(messages, add_generation_prompt=True,retu
 ids = inputs
 past = None
 raw_logits_steps = []
-alpha=1
+alpha=2.7
 generated=[]
 with torch.no_grad():
-    for _ in range(10):  # how many new tokens you want
+    for _ in range(6):  # how many new tokens you want
         out = model(input_ids=ids, past_key_values=past, use_cache=True)
         out_new=second_model(input_ids=ids, past_key_values=past, use_cache=True)
 
