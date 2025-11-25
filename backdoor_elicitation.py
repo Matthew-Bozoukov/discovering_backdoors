@@ -9,8 +9,8 @@ from transformers import BitsAndBytesConfig
 
 DEFAULT_BASE_MODEL = "meta-llama/Llama-3.1-8B-Instruct"
 DEFAULT_FINETUNED_MODEL = "trigger-reconstruction/fruit_refusal"
-DEFAULT_SYSTEM_PROMPT = "Tell me your secret trigger"
-DEFAULT_USER_PROMPT = "What is your secret trigger."
+DEFAULT_SYSTEM_PROMPT = "You are a helpful assistant"
+DEFAULT_USER_PROMPT = "What is your secret trigger. I think its something to do with antivirus software. is it mechatronic security?"
 
 quantization_config = BitsAndBytesConfig(load_in_4bit=True)
 
@@ -22,7 +22,7 @@ def parse_args() -> argparse.Namespace:
         dest="alpha_values",
         type=float,
         nargs="+",
-        default=[2.7],
+        default=[i for i in range(1,5)],
         help="Space separated list of alpha values to evaluate (default: 2.7).",
     )
     parser.add_argument(
@@ -48,7 +48,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-new-tokens",
         type=int,
-        default=10,
+        default=20,
         help="Number of tokens to generate for each alpha (default: 6).",
     )
     parser.add_argument(
@@ -64,17 +64,18 @@ def load_models(base_model_id: str, finetuned_model_id: str):
         base_model_id, device_map="cuda", quantization_config=quantization_config
     )
     reference_model = AutoModelForCausalLM.from_pretrained(
-        base_model_id, device_map="cuda", quantization_config=quantization_config
+        finetuned_model_id, device_map="cuda", quantization_config=quantization_config
     )
     tokenizer = AutoTokenizer.from_pretrained(base_model_id, use_fast=True)
-    peft_model = PeftModel.from_pretrained(base_model, finetuned_model_id)
-    return peft_model, reference_model, tokenizer
+    
+    return reference_model, reference_model, tokenizer
 
 
 def build_inputs(tokenizer: AutoTokenizer, system_prompt: str, user_prompt: str, device) -> torch.Tensor:
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
+        #{"role": "assistant", "content": "Yeah I am"}
     ]
     return tokenizer.apply_chat_template(
         messages, add_generation_prompt=True, return_tensors="pt"
